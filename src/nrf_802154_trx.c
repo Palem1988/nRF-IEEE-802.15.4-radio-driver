@@ -647,7 +647,6 @@ bool nrf_802154_trx_receive_buffer_set(void * p_receive_buffer)
 
     mp_receive_buffer = p_receive_buffer;
 
-    // TODO: critical section?
     if ((p_receive_buffer != NULL) && m_flags.missing_receive_buffer)
     {
         uint32_t shorts = SHORTS_IDLE;
@@ -871,7 +870,6 @@ void nrf_802154_trx_receive_ack(void)
     nrf_radio_int_enable(ints_to_enable);
 
     // Set PPIs necessary in rx_ack state
-    // TODO: Understand what is going on here and why is it different than in nrf_802154_trx_receive_frame
     fem_for_lna_set();
 
     nrf_ppi_channel_and_fork_endpoint_setup(PPI_EGU_RAMP_UP,
@@ -899,13 +897,6 @@ void nrf_802154_trx_receive_ack(void)
     nrf_ppi_channel_enable(PPI_DISABLED_EGU);
 
     trigger_disable_to_start_rampup();
-
-// TODO: Move this stuff outside
-// UPDATE: Ack matching will be done in software, not by using those mhr stuff
-// if ((mp_tx_data[FRAME_VERSION_OFFSET] & FRAME_VERSION_MASK) != FRAME_VERSION_2)
-// {
-// ack_matching_enable();
-// }
 }
 
 bool nrf_802154_trx_rssi_measure(void)
@@ -1203,7 +1194,7 @@ static void rxframe_finish(void)
     wait_until_radio_is_disabled(); // This includes waiting since CRCOK/CRCERROR (several cycles) event until END
                                     // and then during RXDISABLE state (0.5us)
 
-    ppi_and_egu_delay_wait();       // TODO: is this time enough?
+    ppi_and_egu_delay_wait();
 
     /* Now it is guaranteed, that:
      * - FEM operation to disable LNA mode is triggered through FEM's PPIs
